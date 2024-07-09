@@ -1,41 +1,41 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  SignInButton,
-  SignOutButton,
-  SignedIn,
-  SignedOut,
-} from "@clerk/nextjs";
+
 import { useMutation } from "convex/react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useOrganization, useUser } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const createFile = useMutation(api.files.createFiles);
-  const files = useQuery(api.files.getFiles);
+  const organization = useOrganization();
+  const user = useUser();
 
-  console.log(files);
+  let orgId = null;
+
+  if (organization.isLoaded && user.isLoaded) {
+    orgId = organization.organization?.id ?? user.user?.id;
+  }
+
+  const createFile = useMutation(api.files.createFiles);
+  const files = useQuery(api.files.getFiles, orgId ? { orgId } : "skip");
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <SignedIn>
-        <SignOutButton />
-      </SignedIn>
-
-      <SignedOut>
-        <SignInButton mode="modal" />
-      </SignedOut>
-
-      {files?.map(({ _id, name }) => <div key={_id}>{name}</div>)}
-
+      {files?.map((file, indx) => (
+        <div key={indx}>
+          Team:{file.name} - Id: {file._id}
+        </div>
+      ))}
       <Button
-        type="button"
         onClick={() => {
+          if (!orgId) return;
           createFile({
-            name: "Hello, World!",
+            name: `new file from ${orgId}`,
+            orgId,
           });
         }}
       >
-        Do something
+        Clique
       </Button>
     </main>
   );
