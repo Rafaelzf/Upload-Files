@@ -47,6 +47,44 @@ export const createFiles = mutation({
   },
 });
 
+export const deleteFile = mutation({
+  args: { fileId: v.id("files") },
+  async handler(ctx, args) {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new ConvexError("You must be logged in to create files.");
+    }
+
+    const file = await ctx.db.get(args.fileId);
+
+    if (!file) {
+      throw new ConvexError("file not found");
+    }
+
+    const hasAcess = await hasAccessToOrg(
+      ctx,
+      identity.tokenIdentifier,
+      file.orgId
+    );
+
+    if (!hasAcess) {
+      throw new ConvexError("You do not permission to delete this file.");
+    }
+
+    await ctx.db.delete(args.fileId);
+
+    // const access = await hasAccessToFile(ctx, args.fileId);
+    // if (!access) {
+    //   throw new ConvexError("no access to file");
+    // }
+    // assertCanDeleteFile(access.user, access.file);
+    // await ctx.db.patch(args.fileId, {
+    //   shouldDelete: true,
+    // });
+  },
+});
+
 export const getFiles = query({
   args: {
     orgId: v.string(),
