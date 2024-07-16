@@ -25,13 +25,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Doc } from "../../../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
   FileTextIcon,
   GanttChartIcon,
   ImageIcon,
   MoreVertical,
+  StarHalf,
   StarIcon,
   Trash2Icon,
 } from "lucide-react";
@@ -40,7 +41,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 
-function FilecardActions({ file }: { file: Doc<"files"> }) {
+function FilecardActions({
+  file,
+  isFavorited,
+}: {
+  file: Doc<"files">;
+  isFavorited: boolean;
+}) {
   const deleteFile = useMutation(api.files.deleteFile);
   const favoriteFile = useMutation(api.files.toggleFavorite);
 
@@ -93,7 +100,12 @@ function FilecardActions({ file }: { file: Doc<"files"> }) {
             className="flex gap-1 items-center cursor-pointer"
             onClick={() => favoriteFile({ fileId: file._id })}
           >
-            <StarIcon className="h-4 w-4" /> Favorite
+            {isFavorited ? (
+              <StarHalf className="h-4 w-4" />
+            ) : (
+              <StarIcon className="h-4 w-4" />
+            )}
+            Favorite
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -112,19 +124,29 @@ function getFileUrl(fileId: string) {
   return getImageUrl.href;
 }
 
-export function Filecard({ file }: { file: Doc<"files"> }) {
+export function Filecard({
+  file,
+  favorites,
+}: {
+  file: Doc<"files">;
+  favorites: Doc<"favorites">[];
+}) {
   const typeIcons = {
     image: <ImageIcon />,
     pdf: <FileTextIcon />,
     csv: <GanttChartIcon />,
   } as Record<Doc<"files">["type"], ReactNode>;
 
+  const isFavorited = favorites.some(
+    (favorite) => favorite.fileId === file._id
+  );
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           {file.name}
-          <FilecardActions file={file} />
+          <FilecardActions file={file} isFavorited={isFavorited} />
         </CardTitle>
         <CardDescription className="flex gap-2 items-center">
           {typeIcons[file.type]} {file.type}
