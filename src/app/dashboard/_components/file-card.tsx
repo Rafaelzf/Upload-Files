@@ -40,6 +40,7 @@ import { ReactNode, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import { Protect, useOrganization } from "@clerk/nextjs";
 
 function FilecardActions({
   file,
@@ -52,7 +53,11 @@ function FilecardActions({
   const favoriteFile = useMutation(api.files.toggleFavorite);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const { organization, isLoaded } = useOrganization();
   const { toast } = useToast();
+
+  const isPersonalAccount = !organization;
+
   return (
     <>
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -89,13 +94,28 @@ function FilecardActions({
           <MoreVertical />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem
-            className="flex gap-1 text-red-600 items-center cursor-pointer"
-            onClick={() => setConfirmOpen(true)}
-          >
-            <Trash2Icon className="h-4 w-4" /> Delete
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <Protect role="org:admin" fallback={<></>}>
+            <DropdownMenuItem
+              className="flex gap-1 text-red-600 items-center cursor-pointer"
+              onClick={() => setConfirmOpen(true)}
+            >
+              <Trash2Icon className="h-4 w-4" /> Delete
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </Protect>
+
+          {isPersonalAccount && (
+            <>
+              <DropdownMenuItem
+                className="flex gap-1 text-red-600 items-center cursor-pointer"
+                onClick={() => setConfirmOpen(true)}
+              >
+                <Trash2Icon className="h-4 w-4" /> Delete
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
           <DropdownMenuItem
             className="flex gap-1 items-center cursor-pointer"
             onClick={() => favoriteFile({ fileId: file._id })}

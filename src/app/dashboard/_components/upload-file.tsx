@@ -110,6 +110,8 @@ export default function UploadFile() {
     orgId = organization.organization?.id ?? user.user?.id;
   }
 
+  console.log();
+
   const createFile = useMutation(api.files.createFiles);
 
   return (
@@ -139,7 +141,7 @@ export default function UploadFile() {
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
-                        <Input placeholder="shadcn" {...field} />
+                        <Input placeholder="file" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

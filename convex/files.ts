@@ -1,7 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { MutationCtx, QueryCtx, mutation } from "./_generated/server";
 import { query } from "./_generated/server";
-import { getUser } from "./users";
 import { fileTypes } from "./schema";
 import { Id } from "./_generated/dataModel";
 
@@ -22,12 +21,15 @@ export async function hasAccessToOrg(
     )
     .first();
 
+  console.log({ user });
+
   if (!user) {
     return null;
   }
 
   const hasAcess =
-    user.orgIds.includes(orgId) || user.tokenIdentifier.includes(orgId);
+    user.orgIds.some((item) => item.orgId === orgId) ||
+    user.tokenIdentifier.includes(orgId);
 
   if (!hasAcess) {
     return null;
@@ -67,7 +69,10 @@ export const deleteFile = mutation({
     if (!access) {
       throw new ConvexError("No access to file.");
     }
-    await ctx.db.delete(args.fileId);
+
+    await ctx.db.patch(args.fileId, {
+      shouldDelete: true,
+    });
 
     // const access = await hasAccessToFile(ctx, args.fileId);
     // if (!access) {
@@ -85,6 +90,7 @@ export const getFiles = query({
     orgId: v.string(),
     query: v.optional(v.string()),
     favorites: v.optional(v.boolean()),
+    deletedOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const hasAcess = await hasAccessToOrg(ctx, args.orgId);
@@ -117,6 +123,12 @@ export const getFiles = query({
       files = files.filter((file) =>
         favorites.some((favorite) => favorite.fileId === file._id)
       );
+    }
+
+    if (args.deletedOnly) {
+      files = files.filter((file) => file.shouldDelete);
+    } else {
+      files = files.filter((file) => !file.shouldDelete);
     }
 
     return files;
