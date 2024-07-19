@@ -16,10 +16,15 @@ export default defineSchema({
     filedId: v.id("_storage"),
     shouldDelete: v.optional(v.boolean()),
     orgId: v.string(),
-  }).index("by_orgId", ["orgId"]),
+    userId: v.id("users"),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_shouldDelete", ["shouldDelete"]),
 
   users: defineTable({
     tokenIdentifier: v.string(),
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
     orgIds: v.array(
       v.object({
         orgId: v.string(),
