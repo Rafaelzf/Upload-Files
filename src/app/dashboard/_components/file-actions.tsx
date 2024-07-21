@@ -126,33 +126,6 @@ export function FilecardActions({
             <DropdownMenuSeparator />
           </Protect>
 
-          {/* {isPersonalAccount && (
-            <>
-              <DropdownMenuItem
-                className={`flex gap-1 items-center cursor-pointer ${className}`}
-                onClick={() => {
-                  if (file.shouldDelete) {
-                    return restoreFile({
-                      fileId: file._id,
-                    });
-                  }
-                  return setConfirmOpen(true);
-                }}
-              >
-                {file.shouldDelete ? (
-                  <>
-                    <Undo2Icon className="h-4 w-4" /> Restore
-                  </>
-                ) : (
-                  <>
-                    <Trash2Icon className="h-4 w-4" /> Delete
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </>
-          )} */}
-
           <DropdownMenuItem
             className="flex gap-1 items-center cursor-pointer"
             onClick={() => favoriteFile({ fileId: file._id })}
